@@ -1,9 +1,5 @@
 {
-	"/robot2/cmd_vel_mux/input/teleop": ["geometry_msgs/Twist",                 "publisher"   ],
-	"/robot2/cmd_serial":               ["std_msgs/String",                     "publisher"   ],
-	"/robot2/move_base/goal":           ["move_base_msgs/MoveBaseActionGoal",   "publisher"   ],
-	"/robot2/move_base/result":         ["move_base_msgs/MoveBaseActionResult", "subscriber"  ],
-
-	"/end_end_test/p1":                 ["std_msgs/String",                     "publisher"   ],
-	"/end_end_test/s1":                 ["std_msgs/String",                     "subscriber"  ]
+	"/robot_001/status": ["std_msgs/String", "subscriber"],
+	"/robot_001/location": ["geometry_msgs/PoseStamped", "subscriber"],
+	"/robot_001/refDestination": ["std_msgs/String", "publisher"]
 }

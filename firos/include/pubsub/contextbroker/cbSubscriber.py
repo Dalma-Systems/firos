@@ -41,7 +41,8 @@ from include.pubsub.genericPubSub import Subscriber
 from include.ros.topicHandler import RosTopicHandler
 from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConverter
 
-
+import rospy
+from std_msgs.msg import String
 
 
 class CbSubscriber(Subscriber):
@@ -144,7 +145,6 @@ class CbSubscriber(Subscriber):
             self.serverIsRunning = True
             server_ready.wait()
 
-
         # If not already subscribed, start a new thread which handles the subscription for each topic for an robot.
         # And only If the topic list is not empty!
         for topic in topicList:
@@ -220,8 +220,9 @@ class CbSubscriber(Subscriber):
             "subject": {
                 "entities": [
                     {
-                    "id": str(topic).replace("/", "."),  # OCB Specific!!
-                    "type": topicTypes[topic].replace("/", "%2F") # OCB Specific!!
+                    "id": str(topic.split("/")[1]).replace("_", ":"),  # OCB Specific!!
+                    #"type": topicTypes[topic].replace("/", "%2F") # OCB Specific!!
+                    "type": "Robot" # OCB Specific!!
                     }
                 ]
             },
@@ -229,11 +230,14 @@ class CbSubscriber(Subscriber):
             "http": {
                 "url": "http://{}:{}".format(C.EP_SERVER_ADRESS, self.server.port)
             },
-            "attrs": list(msgDefintions[topic].keys())
+            "attrs": [str(topic.split("/")[2])]
             },
             "expires": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time() + self.data["subscription"]["subscription_length"])), # ISO 8601
             "throttling": self.data["subscription"]["throttling"]  
             }
+        # Create ROS publisher
+        global pub
+        pub = rospy.Publisher(topic, String, queue_size=10)
         return json.dumps(struct)
 
 
@@ -333,28 +337,31 @@ class CBServer:
             recData = self.rfile.read(int(self.headers['Content-Length']))
             receivedData = json.loads(recData)
             data = receivedData['data'][0] # Specific to NGSIv2 
-            jsonData = json.dumps(data)
-
-
-
-            obj = self.TypeValue()
-            ObjectFiwareConverter.fiware2Obj(jsonData, obj, setAttr=True, useMetaData=False, encoded=True)
-            obj.id = obj.id.replace(".", "/")
-            obj.type = obj.type.replace("%2F", "/")
-            
-            objType = obj.type
-            topic = obj.id
-
-            del data["id"]
-            del data["type"]
-            tempDict = dict(type=objType, value=data)
-
-            dataStruct = self._buildTypeStruct(tempDict)
-
-            RosTopicHandler.publish(topic, obj.__dict__, dataStruct)
+            #jsonData = json.dumps(data)            
+            pub_data = data['refDestination']['value']
+            pub.publish(pub_data)
             # # Send OK!
             self.send_response(204)
             self.end_headers() # Python 3 needs an extra end_headers after send_response
+
+            # obj = self.TypeValue()
+            # ObjectFiwareConverter.fiware2Obj(jsonData, obj, setAttr=True, useMetaData=False, encoded=True)
+            # obj.id = obj.id.replace(".", "/")
+            # obj.type = obj.type.replace("%2F", "/")
+            
+            # objType = obj.type
+            # topic = obj.id
+
+            # del data["id"]
+            # del data["type"]
+            # tempDict = dict(type=objType, value=data)
+
+            # dataStruct = self._buildTypeStruct(tempDict)
+
+            # RosTopicHandler.publish(topic, obj.__dict__, dataStruct)
+            # # # Send OK!
+            # self.send_response(204)
+            # self.end_headers() # Python 3 needs an extra end_headers after send_response
 
 
         ### Back Conversion From Entity-JSON into Python-Object
