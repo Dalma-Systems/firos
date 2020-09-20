@@ -6,7 +6,7 @@ from include.logger import Log
 #from include.constants import Constants as C
 #from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConverter
 from include.pubsub.genericPubSub import Publisher
-from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Point, Quaternion
+from geometry_msgs.msg import Point
 
 class AMRPublisher(Publisher):
     '''
@@ -75,8 +75,8 @@ class AMRPublisher(Publisher):
                     'value': {
                         'type': 'Point',
                         'coordinates': [
-                            rawMsg.pose.position.x,
-                            rawMsg.pose.position.y
+                            rawMsg.position.x,
+                            rawMsg.position.y
                         ]
                     }
                 }

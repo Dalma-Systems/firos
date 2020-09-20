@@ -224,7 +224,10 @@ class CbSubscriber(Subscriber):
                     #"type": topicTypes[topic].replace("/", "%2F") # OCB Specific!!
                     "type": "Robot" # OCB Specific!!
                     }
-                ]
+                ],
+                "condition": {
+                    "attrs": [str(topic.split("/")[2])]
+                }
             },
             "notification": {
             "http": {
@@ -237,7 +240,7 @@ class CbSubscriber(Subscriber):
             }
         # Create ROS publisher
         global pub
-        pub = rospy.Publisher(topic, String, queue_size=10)
+        pub = rospy.Publisher(topic, String, queue_size=3, latch=False)
         return json.dumps(struct)
 
 

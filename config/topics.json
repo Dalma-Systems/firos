@@ -1,5 +1,5 @@
 {
 	"/robot_001/status": ["std_msgs/String", "subscriber"],
-	"/robot_001/location": ["geometry_msgs/PoseStamped", "subscriber"],
+	"/robot_001/location": ["geometry_msgs/Pose", "subscriber"],
 	"/robot_001/refDestination": ["std_msgs/String", "publisher"]
 }
