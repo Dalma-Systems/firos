@@ -342,6 +342,7 @@ class CBServer:
             data = receivedData['data'][0] # Specific to NGSIv2 
             #jsonData = json.dumps(data)            
             pub_data = data['refDestination']['value']
+            global pub
             pub.publish(pub_data)
             # # Send OK!
             self.send_response(204)
