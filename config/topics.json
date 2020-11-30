@@ -1,5 +1,6 @@
 {
-	"/robot_001/status": ["std_msgs/String", "subscriber"],
-	"/robot_001/location": ["geometry_msgs/Pose", "subscriber"],
-	"/robot_001/refDestination": ["std_msgs/String", "publisher"]
+	"/robot_id/status": ["std_msgs/String", "subscriber"],
+	"/robot_id/battery": ["std_msgs/UInt32", "subscriber"],
+	"/robot_id/location": ["geometry_msgs/Pose", "subscriber"],
+	"/robot_id/refDestination": ["std_msgs/String", "publisher"]
 }

@@ -220,9 +220,8 @@ class CbSubscriber(Subscriber):
             "subject": {
                 "entities": [
                     {
-                    "id": str(topic.split("/")[1]).replace("_", ":"),  # OCB Specific!!
-                    #"type": topicTypes[topic].replace("/", "%2F") # OCB Specific!!
-                    "type": "Robot" # OCB Specific!!
+                    "id": C.ID_PREFIX + str(topic.split("/")[1]).replace("_", ":"),
+                    "type": "AMR"
                     }
                 ],
                 "condition": {
@@ -233,7 +232,8 @@ class CbSubscriber(Subscriber):
             "http": {
                 "url": "http://{}:{}".format(C.EP_SERVER_ADRESS, self.server.port)
             },
-            "attrs": [str(topic.split("/")[2])]
+            "attrs": [str(topic.split("/")[2])],
+            "onlyChangedAttrs": False
             },
             "expires": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time() + self.data["subscription"]["subscription_length"])), # ISO 8601
             "throttling": self.data["subscription"]["throttling"]  

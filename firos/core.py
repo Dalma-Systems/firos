@@ -84,6 +84,7 @@ if __name__ == '__main__':
     from include.server.firosServer import FirosServer
     
     from include.ros.topicHandler import RosTopicHandler, loadMsgHandlers, createConnectionListeners, initPubAndSub
+    from include.ros.featsHandler import FeatsHandler
 
     # Overwrite global variables with command line arguments (iff set)
     if results.port is not None:
@@ -130,6 +131,7 @@ if __name__ == '__main__':
         initPubAndSub()
         loadMsgHandlers(confManager.getRobots(True))
         createConnectionListeners()
+        handler = FeatsHandler()
 
         Log("INFO", "\nPress Ctrl+C to Exit\n")
         server.start()

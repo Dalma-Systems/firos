@@ -23,14 +23,13 @@ __status__ = "Developement"
 import json
 import requests
 import os
-
+import tf
 from include.logger import Log
 from include.constants import Constants as C
 from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConverter
 from include.pubsub.genericPubSub import Publisher
-
-
-
+from geometry_msgs.msg import Quaternion
+import datetime
 
 class CbPublisher(Publisher):
     ''' The CbPublisher handles the Enities on CONTEXT_BROKER / v2 / entities .
@@ -90,31 +89,33 @@ class CbPublisher(Publisher):
         if self.noConf:
             return
 
+        # Create Update-JSON
+        obj = {s: getattr(rawMsg, s, None) for s in rawMsg.__slots__}
+        obj["id"] = C.ID_PREFIX + topic.split("/")[1].replace('_', ':')
+        try:
+            attr = topic.split("/")[2]
+        except:
+            return
+        
+        data = self.set_data(attr, rawMsg)        
+        
+        if data is not False:
+            jsonStr = json.dumps(data)
+        else:
+            return
 
         # if struct not initilized, intitilize it even on ContextBroker!
         if topic not in self.posted_history:
             self.posted_history[topic] = rawMsg
-            
-            obj = {s: getattr(rawMsg, s, None) for s in rawMsg.__slots__}
-            obj["type"] = rawMsg._type#.replace("/", "%2F") # OCB Specific!!
-            obj["id"] = (topic).replace("/", ".") # OCB Specific!!
-            jsonStr = ObjectFiwareConverter.obj2Fiware(obj, ind=None, dataTypeDict=msgDefintionDict[topic],  ignorePythonMetaData=True, encode=True)
-            response = requests.post(self.CB_BASE_URL, data=jsonStr, headers=self.CB_HEADER)
+            response = requests.post(self.CB_BASE_URL + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
             self._responseCheck(response, attrAction=0, topEnt=topic)
             return
 
         # Replace previous rawMsg with current one
         self.posted_history[topic] = rawMsg
 
-        # Create Update-JSON
-        obj = {s: getattr(rawMsg, s, None) for s in rawMsg.__slots__}
-        obj["type"] = rawMsg._type.replace("/", "%2F") # OCB Specific!!
-        obj["id"] = (topic).replace("/", ".") # OCB Specific!!
-        jsonStr = ObjectFiwareConverter.obj2Fiware(obj, ind=None, dataTypeDict=msgDefintionDict[topic],  ignorePythonMetaData=True, showIdValue=False, encode=True) 
-        # print(jsonStr)
-
         # Update attribute on ContextBroker
-        response = requests.post(self.CB_BASE_URL + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
+        response = requests.patch(self.CB_BASE_URL + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
         self._responseCheck(response, attrAction=1, topEnt=topic)
 
 
@@ -147,3 +148,63 @@ class CbPublisher(Publisher):
             else:
                 Log("WARNING", "Could not delete Entitiy {} in Contextbroker :".format(topEnt))
                 Log("WARNING", response.content)
+
+    def set_data(self, attribute, payload):
+        ''' Return data for Fiware publication, according to attribute type (FEATS specific)
+        
+        '''
+        if attribute == 'status':
+            data = {
+                attribute:
+                {
+                    'type': 'Text',
+                    'value': payload.data
+                }
+            }
+        elif attribute == 'battery':
+            data = {
+                attribute:
+                {
+                    'type': 'Number',
+                    'value': payload.data
+                }
+            }
+        elif attribute == 'location':
+            angle = tf.transformations.euler_from_quaternion([
+                            payload.orientation.x,
+                            payload.orientation.y,
+                            payload.orientation.z,
+                            payload.orientation.w])[2]
+            data = {
+                attribute:
+                {
+                    'type': 'geo:json',
+                    'value': {
+                        'type': 'Point',
+                        'coordinates': [
+                            payload.position.x,
+                            payload.position.y
+                        ]
+                    },
+                    "metadata": {
+                        "angle": {
+                            "type": "Double",
+                            "value": angle
+                        },
+                        "dateModified": {
+                            "type": "DateTime",
+                            "value": "2020-11-14T16:46:39.737Z"
+                        }
+                    }
+                }
+            }
+        else:
+            Log("WARNING", "You are trying to change the wrong attribute!")
+            return
+        # add current timestamp to data
+        data['dateModified'] = {
+            "type": "DateTime",
+            "value": datetime.datetime.now().isoformat(),
+            "metadata": {}
+        }
+        return data

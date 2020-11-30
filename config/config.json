@@ -2,6 +2,8 @@
   "environment": "demo",
 
   "demo": {
+    "robotID": "9e2b8f62b800420d9926f1090945a844",
+    "id_prefix": "urn:ngsi-ld:AMR:",
     "server": {
         "port"      : 10100
     },
@@ -13,11 +15,6 @@
           "subscription_length": 3000,
           "subscription_refresh_delay": 0.5
         }
-    },
-    "amr" : {
-      "address"   : "127.0.0.1",
-        "port"      : 21026
-        
     },
     "endpoint": {
       "address": "172.18.1.1",

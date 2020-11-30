@@ -57,10 +57,17 @@ def getRobots(refresh=False):
                 Log("ERROR", "The topic: '{}', does not specify publisher or subscriber (topics.json)! \n\nExiting".format(key))
                 sys.exit(1)
 
+        # replace first term of topic with robot ID from config file
+        replace_id = C.ROBOT_ID
+        new_topics = {}
+        
+        for key in topics_json:
+            new_key = '/' + replace_id + '/' + key.split('/')[2]
+            new_topics[new_key] = topics_json[key]
 
         # Merge both dictionaties:
         # Here topics_json overrides entries in topics_regex:
-        topics_regex.update(topics_json)
+        topics_regex.update(new_topics)
         topics = topics_regex
 
         return topics

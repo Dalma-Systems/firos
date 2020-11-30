@@ -62,7 +62,7 @@ class Constants:
                 cls.LOGLEVEL = configData["log_level"]
 
             if "server" in configData and "port" in configData["server"]:
-               cls. MAP_SERVER_PORT = configData["server"]["port"]
+                cls.MAP_SERVER_PORT = configData["server"]["port"]
 
             if "node_name" in configData:
                 cls.ROS_NODE_NAME = configData["node_name"]
@@ -86,3 +86,7 @@ class Constants:
 
             if "pub_frequency" in configData:
                 cls.PUB_FREQUENCY = int(configData["pub_frequency"])
+            if "robotID" in configData:
+                cls.ROBOT_ID = configData["robotID"]
+            if "id_prefix" in configData:
+                cls.ID_PREFIX = configData["id_prefix"]
