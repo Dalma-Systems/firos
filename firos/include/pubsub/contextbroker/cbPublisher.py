@@ -91,7 +91,7 @@ class CbPublisher(Publisher):
 
         # Create Update-JSON
         obj = {s: getattr(rawMsg, s, None) for s in rawMsg.__slots__}
-        obj["id"] = C.ID_PREFIX + topic.split("/")[1].replace('_', ':')
+        obj["id"] = topic.split("/")[1].replace('_', ':')
         try:
             attr = topic.split("/")[2]
         except:
@@ -107,7 +107,7 @@ class CbPublisher(Publisher):
         # if struct not initilized, intitilize it even on ContextBroker!
         if topic not in self.posted_history:
             self.posted_history[topic] = rawMsg
-            response = requests.post(self.CB_BASE_URL + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
+            response = requests.post(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
             self._responseCheck(response, attrAction=0, topEnt=topic)
             return
 
@@ -115,7 +115,7 @@ class CbPublisher(Publisher):
         self.posted_history[topic] = rawMsg
 
         # Update attribute on ContextBroker
-        response = requests.patch(self.CB_BASE_URL + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
+        response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
         self._responseCheck(response, attrAction=1, topEnt=topic)
 
 
@@ -190,10 +190,6 @@ class CbPublisher(Publisher):
                         "angle": {
                             "type": "Double",
                             "value": angle
-                        },
-                        "dateModified": {
-                            "type": "DateTime",
-                            "value": "2020-11-14T16:46:39.737Z"
                         }
                     }
                 }

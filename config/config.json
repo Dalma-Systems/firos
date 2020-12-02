@@ -12,7 +12,7 @@
         "port"      : 21026,
         "subscription": {
           "throttling": 0,
-          "subscription_length": 3000,
+          "subscription_length": 300,
           "subscription_refresh_delay": 0.5
         }
     },

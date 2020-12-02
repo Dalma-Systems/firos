@@ -186,7 +186,7 @@ class CbSubscriber(Subscriber):
         while True:
             # Subscribe
             jsonData = self.subscribeJSONGenerator(topic, topicTypes, msgDefintions)
-            response = requests.post(self.CB_BASE_URL + "/v2/subscriptions", data=jsonData, headers={'Content-Type': 'application/json'})
+            response = requests.post(self.CB_BASE_URL + "/v2/subscriptions?options=skipInitialNotification", data=jsonData, headers={'Content-Type': 'application/json'})
             self._checkResponse(response, created=True, robTop=topic)
 
             if 'Location' in response.headers:
@@ -232,8 +232,7 @@ class CbSubscriber(Subscriber):
             "http": {
                 "url": "http://{}:{}".format(C.EP_SERVER_ADRESS, self.server.port)
             },
-            "attrs": [str(topic.split("/")[2])],
-            "onlyChangedAttrs": False
+            "attrs": [str(topic.split("/")[2])]
             },
             "expires": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time() + self.data["subscription"]["subscription_length"])), # ISO 8601
             "throttling": self.data["subscription"]["throttling"]  
