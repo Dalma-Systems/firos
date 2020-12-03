@@ -14,7 +14,7 @@ from include.constants import Constants as C
 #from include.libLoader import LibLoader
 from include.ros.rosConfigurator import RosConfigurator
 from include import confManager
-from std_msgs.msg import String, UInt32, Float32
+from std_msgs.msg import String, Float32
 from geometry_msgs.msg import Vector3, Pose, Point, Quaternion
 #from include.ros.topicHandler import loadMsgHandlers
 
@@ -32,6 +32,8 @@ class FeatsHandler:
         self.firstRun = True
         # Get Orion configuration
         self.configData = self.get_cb_config()
+        self.lastBattery = 0.0
+        self.idleGoal = False # this variable stores whether the robot is moving to an idle station or not
 
         # Init ROS publishers
         self.routePlannerXYTPub = rospy.Publisher('/route_planner/goalXYT', Vector3, queue_size=3)
@@ -109,7 +111,14 @@ class FeatsHandler:
             Log("INFO", ("Request failed: received status code " + str(response.status_code)))
             return
         data = json.loads(response.content)
-        # send data as a Vector3 (slight hack, did not want to calculate a quaternion here)
+
+        # Check if goal is an idle station
+        if 'Idlestation' in data.data:
+            self.idleGoal = True
+        else:
+            self.idleGoal = False
+
+        # Send data as a Vector3 (slight hack, did not want to calculate a quaternion here)
         pose = Vector3()
         pose.x = data['value']['coordinates'][0]
         pose.y = data['value']['coordinates'][1]
@@ -120,12 +129,20 @@ class FeatsHandler:
     def status_cb(self, data):
         '''Publishes received status data to FIROS topic (simple remap)
         '''
-        self.statusPub.publish(data.data)
+        # Check if status is of type 'stopped', to decide if 'idle' or 'stopped'
+        status = data.data
+        if status == 'stopped' and self.idleGoal:
+            status = 'idle'
+            self.idleGoal = False
+
+        self.statusPub.publish(status)
 
     def battery_cb(self, data):
         '''Publishes received battery data to FIROS topic (simple remap)
         '''
-        self.batteryPub.publish(data.data)
+        if data.data != self.lastBattery:
+            self.batteryPub.publish(data.data)
+            self.lastBattery = data.data
     
     def publish_location(self):
         '''Retrieves current robot location and publishes to FIROS topic
