@@ -113,7 +113,7 @@ class FeatsHandler:
         data = json.loads(response.content)
 
         # Check if goal is an idle station
-        if 'Idlestation' in data.data:
+        if 'Idlestation' in data:
             self.idleGoal = True
         else:
             self.idleGoal = False
@@ -160,7 +160,7 @@ def xytheta_to_pose_stamped(x,y,theta):
 def get_robot_position():
     """Gets current robot coordinates using TF and returns a Pose object"""
     # temp: tests
-    return xytheta_to_pose_stamped(1.0, -2.0, 1.2)
+    #return xytheta_to_pose_stamped(1.0, -2.0, 1.2)
     while True:
         try:
             tfBuffer = tf2_ros.Buffer()

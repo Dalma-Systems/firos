@@ -8,8 +8,8 @@
         "port"      : 10100
     },
     "contextbroker": {
-      "address"   : "127.0.0.1",
-        "port"      : 21026,
+      "address"   : "130.188.160.109",
+        "port"      : 1026,
         "subscription": {
           "throttling": 0,
           "subscription_length": 300,
