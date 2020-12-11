@@ -15,7 +15,7 @@ from include.constants import Constants as C
 from include.ros.rosConfigurator import RosConfigurator
 from include import confManager
 from std_msgs.msg import String, Float32
-from geometry_msgs.msg import Vector3, Pose, Point, Quaternion
+from geometry_msgs.msg import Vector3, Pose, Point, Quaternion, PoseWithCovarianceStamped
 #from include.ros.topicHandler import loadMsgHandlers
 
 class FeatsHandler:
@@ -44,6 +44,7 @@ class FeatsHandler:
         # Init ROS subscribers
         rospy.Subscriber('/battery/level', Float32, self.battery_cb)
         rospy.Subscriber('/feats/status', String, self.status_cb)
+        rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.location_cb)
 
         ## Set Configuration
         data = self.configData['contextbroker']
@@ -71,7 +72,7 @@ class FeatsHandler:
         periodically to the FIROS topic
         '''
         while not rospy.is_shutdown():
-            self.publish_location()
+            #self.publish_location()
             rospy.sleep(2)
         return
 
@@ -110,19 +111,19 @@ class FeatsHandler:
         if response.status_code != 200:
             Log("INFO", ("Request failed: received status code " + str(response.status_code)))
             return
-        data = json.loads(response.content)
+        recv = json.loads(response.content)
 
         # Check if goal is an idle station
-        if 'Idlestation' in data:
+        if 'Idlestation' in data.data:
             self.idleGoal = True
         else:
             self.idleGoal = False
 
         # Send data as a Vector3 (slight hack, did not want to calculate a quaternion here)
         pose = Vector3()
-        pose.x = data['value']['coordinates'][0]
-        pose.y = data['value']['coordinates'][1]
-        pose.z = data['metadata']['angle']['value']
+        pose.x = recv['value']['coordinates'][0]
+        pose.y = recv['value']['coordinates'][1]
+        pose.z = recv['metadata']['angle']['value']
         self.routePlannerXYTPub.publish(pose)
         return
     
@@ -143,6 +144,14 @@ class FeatsHandler:
         if data.data != self.lastBattery:
             self.batteryPub.publish(data.data)
             self.lastBattery = data.data
+
+    def location_cb(self, data):
+        '''
+        '''
+        location = Pose()
+        location.position = data.pose.pose.position
+        location.orientation = data.pose.pose.orientation
+        self.locationPub.publish(location)
     
     def publish_location(self):
         '''Retrieves current robot location and publishes to FIROS topic
