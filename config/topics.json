@@ -2,5 +2,6 @@
 	"/robot_id/status": ["std_msgs/String", "subscriber"],
 	"/robot_id/battery": ["std_msgs/Float32", "subscriber"],
 	"/robot_id/location": ["geometry_msgs/Pose", "subscriber"],
-	"/robot_id/refDestination": ["std_msgs/String", "publisher"]
+	"/robot_id/refDestination": ["std_msgs/String", "publisher"],
+	"/robot_id/action": ["std_msgs/String", "publisher"]
 }

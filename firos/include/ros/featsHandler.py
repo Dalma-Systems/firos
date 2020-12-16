@@ -34,9 +34,12 @@ class FeatsHandler:
         self.configData = self.get_cb_config()
         self.lastBattery = 0.0
         self.idleGoal = False # this variable stores whether the robot is moving to an idle station or not
+        self.context_id = ""
 
         # Init ROS publishers
         self.routePlannerXYTPub = rospy.Publisher('/route_planner/goalXYT', Vector3, queue_size=3)
+        self.routePlannerPausePub = rospy.Publisher('/route_planner/cancel', String, queue_size=3)
+        self.routePlannerResumePub = rospy.Publisher('/route_planner/resume', String, queue_size=3)
         self.locationPub = rospy.Publisher('/' + C.ROBOT_ID + '/location', Pose, queue_size=3)
         self.statusPub = rospy.Publisher('/' + C.ROBOT_ID + '/status', String, queue_size=3)
         self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Float32, queue_size=3)
@@ -60,7 +63,12 @@ class FeatsHandler:
         # Subscribe to topics in topics.json
         for key in topics:
             if topics[key][1] == 'publisher':
-                self.init_sub(key)        
+                Log("INFO", ('\nSubscribing to ' + key))
+                topic_type = key.split('/')[2]
+                if topic_type == 'refDestination':
+                    rospy.Subscriber(key, String, self.ref_destination_cb)
+                elif topic_type == 'action':
+                    rospy.Subscriber(key, String, self.action_cb)
 
         Log("INFO", ('\nFEATS handler initialized!'))
         
@@ -119,6 +127,13 @@ class FeatsHandler:
         else:
             self.idleGoal = False
 
+        # Save context ID
+        #print(data)
+        #data = json.loads(data.data)
+        #print(data)
+        #self.context_id = data['metadata']['context']['value']
+        self.context_id = C.CONTEXT_ID
+
         # Send data as a Vector3 (slight hack, did not want to calculate a quaternion here)
         pose = Vector3()
         pose.x = recv['value']['coordinates'][0]
@@ -127,11 +142,29 @@ class FeatsHandler:
         self.routePlannerXYTPub.publish(pose)
         return
     
+    def action_cb(self, data):
+        '''Handles actions by passing the info to route_planner
+        '''
+        action = data.data
+        if action == 'pause':
+            # robot stops current goal and replies "paused" + context_id
+            self.routePlannerPausePub.publish('')
+            self.statusPub.publish('paused')
+        elif action == 'resume':
+            # robot resumes goal and replies <last state> + context_id
+            self.routePlannerResumePub.publish('')
+            self.statusPub.publish(self.status)
+        elif action == 'update':
+            # perform update
+            print('update')
+            self.statusPub.publish('update')
+    
     def status_cb(self, data):
         '''Publishes received status data to FIROS topic (simple remap)
         '''
         # Check if status is of type 'stopped', to decide if 'idle' or 'stopped'
         status = data.data
+        self.status = status
         if status == 'stopped' and self.idleGoal:
             status = 'idle'
             self.idleGoal = False

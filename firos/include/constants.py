@@ -90,3 +90,5 @@ class Constants:
                 cls.ROBOT_ID = configData["robotID"]
             if "id_prefix" in configData:
                 cls.ID_PREFIX = configData["id_prefix"]
+            
+            cls.CONTEXT_ID = ""

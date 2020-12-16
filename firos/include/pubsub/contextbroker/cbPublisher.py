@@ -30,6 +30,7 @@ from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConv
 from include.pubsub.genericPubSub import Publisher
 from geometry_msgs.msg import Quaternion
 import datetime
+#from include.pubsub.contextbroker.cbSubscriber import context_id as CONTEXT_ID
 
 class CbPublisher(Publisher):
     ''' The CbPublisher handles the Enities on CONTEXT_BROKER / v2 / entities .
@@ -158,7 +159,13 @@ class CbPublisher(Publisher):
                 attribute:
                 {
                     'type': 'Text',
-                    'value': payload.data
+                    'value': payload.data,
+                    'metadata': {
+                        'context': {
+                            'type': 'Text',
+                            'value': C.CONTEXT_ID
+                        }
+                    }
                 }
             }
         elif attribute == 'battery':

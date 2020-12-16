@@ -44,7 +44,6 @@ from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConv
 import rospy
 from std_msgs.msg import String
 
-
 class CbSubscriber(Subscriber):
     ''' The CbSubscriber handles the subscriptions on the ContextBroker.
         Only the url CONTEXT_BROKER / v2 / subcriptions  is used here!
@@ -238,8 +237,9 @@ class CbSubscriber(Subscriber):
             "throttling": self.data["subscription"]["throttling"]  
             }
         # Create ROS publisher
-        global pub
-        pub = rospy.Publisher(topic, String, queue_size=3, latch=False)
+        #global pub
+        #pub = rospy.Publisher(topic, String, queue_size=3, latch=False)
+        #print(topic)
         return json.dumps(struct)
 
 
@@ -338,11 +338,30 @@ class CBServer:
             # retreive Data and get the updated information
             recData = self.rfile.read(int(self.headers['Content-Length']))
             receivedData = json.loads(recData)
+            #global context_id
+            #context_id = receivedData['data'][0]['refDestination']['metadata']['context']['value']
+            #print(receivedData)
+            #topic = receivedData['']
+            #C.CONTEXT_ID = receivedData['data'][0]['refDestination']['metadata']['context']['value']
             data = receivedData['data'][0] # Specific to NGSIv2 
             #jsonData = json.dumps(data)            
-            pub_data = data['refDestination']['value']
-            global pub
-            pub.publish(pub_data)
+            #pub_data = data['refDestination']['value']
+            #global pub
+            #pub.publish(pub_data)
+
+            if 'refDestination' in data:
+                topic = '/' + data['id'].split(':')[3] + '/' + 'refDestination'
+                payload = data['refDestination']['value']
+                C.CONTEXT_ID = data['refDestination']['metadata']['context']['value']
+            elif 'action' in data:
+                topic = '/' + data['id'].split(':')[3] + '/' + 'action'
+                payload = data['action']['value']
+                C.CONTEXT_ID = data['action']['metadata']['context']['value']
+
+            pub = rospy.Publisher(topic, String, queue_size=3, latch=False)
+            pub.publish(payload)
+            pub.unregister()
+
             # # Send OK!
             self.send_response(204)
             self.end_headers() # Python 3 needs an extra end_headers after send_response
@@ -354,6 +373,9 @@ class CBServer:
             
             # objType = obj.type
             # topic = obj.id
+
+            # print(obj.id)
+            # print(data)
 
             # del data["id"]
             # del data["type"]
