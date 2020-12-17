@@ -86,9 +86,14 @@ class Constants:
 
             if "pub_frequency" in configData:
                 cls.PUB_FREQUENCY = int(configData["pub_frequency"])
+            
             if "robotID" in configData:
                 cls.ROBOT_ID = configData["robotID"]
+            
             if "id_prefix" in configData:
                 cls.ID_PREFIX = configData["id_prefix"]
+
+            if "heartbeat" in configData:
+                cls.HEARTBEAT = configData["heartbeat"]
             
             cls.CONTEXT_ID = ""

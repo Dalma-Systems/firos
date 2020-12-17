@@ -24,6 +24,7 @@ import json
 import requests
 import os
 import tf
+import time
 from include.logger import Log
 from include.constants import Constants as C
 from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConverter
@@ -199,6 +200,14 @@ class CbPublisher(Publisher):
                             "value": angle
                         }
                     }
+                }
+            }
+        elif attribute == 'heartbeat':
+            data = {
+                attribute: {
+                    "type": "DateTime",
+                    "value": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time())), # ISO 8601,
+                    "metadata" : {}
                 }
             }
         else:

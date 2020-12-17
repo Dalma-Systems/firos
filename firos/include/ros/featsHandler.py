@@ -8,6 +8,7 @@ import json
 import requests
 import tf
 import tf2_ros
+import time
 
 from include.logger import Log
 from include.constants import Constants as C 
@@ -16,6 +17,7 @@ from include.ros.rosConfigurator import RosConfigurator
 from include import confManager
 from std_msgs.msg import String, Float32
 from geometry_msgs.msg import Vector3, Pose, Point, Quaternion, PoseWithCovarianceStamped
+from threading import Timer
 #from include.ros.topicHandler import loadMsgHandlers
 
 class FeatsHandler:
@@ -35,6 +37,7 @@ class FeatsHandler:
         self.lastBattery = 0.0
         self.idleGoal = False # this variable stores whether the robot is moving to an idle station or not
         self.context_id = ""
+        self.heartbeat_timer = None
 
         # Init ROS publishers
         self.routePlannerXYTPub = rospy.Publisher('/route_planner/goalXYT', Vector3, queue_size=3)
@@ -43,6 +46,7 @@ class FeatsHandler:
         self.locationPub = rospy.Publisher('/' + C.ROBOT_ID + '/location', Pose, queue_size=3)
         self.statusPub = rospy.Publisher('/' + C.ROBOT_ID + '/status', String, queue_size=3)
         self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Float32, queue_size=3)
+        self.heartbeatPub = rospy.Publisher('/' + C.ROBOT_ID + '/heartbeat', String, queue_size=3)
 
         # Init ROS subscribers
         rospy.Subscriber('/battery/level', Float32, self.battery_cb)
@@ -71,6 +75,9 @@ class FeatsHandler:
                     rospy.Subscriber(key, String, self.action_cb)
 
         Log("INFO", ('\nFEATS handler initialized!'))
+
+        # Send first heartbeat
+        self.send_heartbeat()
         
         # Main loop
         self.loop()
@@ -80,9 +87,16 @@ class FeatsHandler:
         periodically to the FIROS topic
         '''
         while not rospy.is_shutdown():
-            #self.publish_location()
             rospy.sleep(2)
         return
+
+    def send_heartbeat(self):
+        '''Sends a heartbeat to ORION, i.e., an update
+        of the "heartbeat" attribute
+        '''
+        self.heartbeatPub.publish('')
+        self.heartbeat_timer = Timer(C.HEARTBEAT, self.send_heartbeat)
+        self.heartbeat_timer.start()
 
     def get_cb_config(self):
         '''Reads configuration from config.json file
@@ -158,6 +172,8 @@ class FeatsHandler:
             # perform update
             print('update')
             self.statusPub.publish('update')
+        else:
+            print("Action not recognized")
     
     def status_cb(self, data):
         '''Publishes received status data to FIROS topic (simple remap)

@@ -185,21 +185,24 @@ class CbSubscriber(Subscriber):
         while True:
             # Subscribe
             jsonData = self.subscribeJSONGenerator(topic, topicTypes, msgDefintions)
-            response = requests.post(self.CB_BASE_URL + "/v2/subscriptions?options=skipInitialNotification", data=jsonData, headers={'Content-Type': 'application/json'})
-            self._checkResponse(response, created=True, robTop=topic)
+            try:
+                response = requests.post(self.CB_BASE_URL + "/v2/subscriptions?options=skipInitialNotification", data=jsonData, headers={'Content-Type': 'application/json'}, timeout=5)
+                self._checkResponse(response, created=True, robTop=topic)
 
-            if 'Location' in response.headers:
-                newSubID = response.headers['Location'] # <- get subscription-ID
-            else:
-                Log("WARNING",  "Firos was not able to subscribe to topic: {}".format(topic))
+                if 'Location' in response.headers:
+                    newSubID = response.headers['Location'] # <- get subscription-ID
+                else:
+                    Log("WARNING",  "Firos was not able to subscribe to topic: {}".format(topic))
 
-            # Unsubscribe
-            if topic in self.subscriptionIds:
-                response = requests.delete(self.CB_BASE_URL + self.subscriptionIds[topic])
-                self._checkResponse(response, subID=self.subscriptionIds[topic])
-                
-            # Save new ID
-            self.subscriptionIds[topic] = newSubID
+                # Unsubscribe
+                if topic in self.subscriptionIds:
+                    response = requests.delete(self.CB_BASE_URL + self.subscriptionIds[topic])
+                    self._checkResponse(response, subID=self.subscriptionIds[topic])
+                    
+                # Save new ID
+                self.subscriptionIds[topic] = newSubID
+            except:
+                print('Could not connect to server!')
 
             # Wait
             time.sleep(int(self.data["subscription"]["subscription_length"] * self.data["subscription"]["subscription_refresh_delay"])) # sleep Length * Refresh-Rate (where 0 < Refresh-Rate < 1)
