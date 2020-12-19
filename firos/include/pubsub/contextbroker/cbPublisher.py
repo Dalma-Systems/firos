@@ -165,6 +165,10 @@ class CbPublisher(Publisher):
                         'context': {
                             'type': 'Text',
                             'value': C.CONTEXT_ID
+                        },
+                        'dateModified': {
+                            "type": "DateTime",
+                            "value": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time())) # ISO 8601
                         }
                     }
                 }
@@ -206,7 +210,7 @@ class CbPublisher(Publisher):
             data = {
                 attribute: {
                     "type": "DateTime",
-                    "value": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time())), # ISO 8601,
+                    "value": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time())), # ISO 8601
                     "metadata" : {}
                 }
             }
@@ -216,7 +220,7 @@ class CbPublisher(Publisher):
         # add current timestamp to data
         data['dateModified'] = {
             "type": "DateTime",
-            "value": datetime.datetime.now().isoformat(),
+            "value": time.strftime("%Y-%m-%dT%H:%M:%S.00Z", time.gmtime(time.time())),
             "metadata": {}
         }
         return data

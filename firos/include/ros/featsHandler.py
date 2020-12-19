@@ -87,7 +87,8 @@ class FeatsHandler:
         periodically to the FIROS topic
         '''
         while not rospy.is_shutdown():
-            rospy.sleep(2)
+            rospy.sleep(1)
+        self.heartbeat_timer.cancel()
         return
 
     def send_heartbeat(self):
@@ -184,6 +185,9 @@ class FeatsHandler:
         if status == 'stopped' and self.idleGoal:
             status = 'idle'
             self.idleGoal = False
+        
+        #if status == 'stopped' or status == 'idle':
+        #    C.CONTEXT_ID = self.context_id
 
         self.statusPub.publish(status)
 
