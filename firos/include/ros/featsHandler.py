@@ -37,6 +37,7 @@ class FeatsHandler:
         self.lastBattery = 0.0
         self.idleGoal = False # this variable stores whether the robot is moving to an idle station or not
         self.context_id = ""
+        self.workorder_id = ""
         self.heartbeat_timer = None
 
         # Init ROS publishers
@@ -143,11 +144,7 @@ class FeatsHandler:
             self.idleGoal = False
 
         # Save context ID
-        #print(data)
-        #data = json.loads(data.data)
-        #print(data)
-        #self.context_id = data['metadata']['context']['value']
-        self.context_id = C.CONTEXT_ID
+        self.workorder_id = C.CONTEXT_ID
 
         # Send data as a Vector3 (slight hack, did not want to calculate a quaternion here)
         pose = Vector3()
@@ -168,7 +165,8 @@ class FeatsHandler:
         elif action == 'resume':
             # robot resumes goal and replies <last state> + context_id
             self.routePlannerResumePub.publish('')
-            self.statusPub.publish(self.status)
+            if self.status != 'moving':
+                self.statusPub.publish(self.status)
         elif action == 'update':
             # perform update
             print('update')
@@ -186,8 +184,8 @@ class FeatsHandler:
             status = 'idle'
             self.idleGoal = False
         
-        #if status == 'stopped' or status == 'idle':
-        #    C.CONTEXT_ID = self.context_id
+        if status == 'stopped' or status == 'idle':
+            C.CONTEXT_ID = self.workorder_id
 
         self.statusPub.publish(status)
 
