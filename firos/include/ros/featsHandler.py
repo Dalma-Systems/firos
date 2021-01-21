@@ -15,7 +15,7 @@ from include.constants import Constants as C
 #from include.libLoader import LibLoader
 from include.ros.rosConfigurator import RosConfigurator
 from include import confManager
-from std_msgs.msg import String, Float32
+from std_msgs.msg import String, Float32, Bool
 from geometry_msgs.msg import Vector3, Pose, Point, Quaternion, PoseWithCovarianceStamped
 from threading import Timer
 #from include.ros.topicHandler import loadMsgHandlers
@@ -32,6 +32,7 @@ class FeatsHandler:
         Log("INFO", ('\nCreating a new FEATS handler...'))
 
         self.firstRun = True
+        self.status = 'idle'
         # Get Orion configuration
         self.configData = self.get_cb_config()
         self.lastBattery = 0.0
@@ -48,11 +49,13 @@ class FeatsHandler:
         self.statusPub = rospy.Publisher('/' + C.ROBOT_ID + '/status', String, queue_size=3)
         self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Float32, queue_size=3)
         self.heartbeatPub = rospy.Publisher('/' + C.ROBOT_ID + '/heartbeat', String, queue_size=3)
+        self.selfStatusPub = rospy.Publisher('/feats/status', String, queue_size=3)
 
         # Init ROS subscribers
         rospy.Subscriber('/battery/level', Float32, self.battery_cb)
         rospy.Subscriber('/feats/status', String, self.status_cb)
         rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.location_cb)
+        rospy.Subscriber('/charging/plugged', Bool, self.charging_cb)
 
         ## Set Configuration
         data = self.configData['contextbroker']
@@ -179,9 +182,12 @@ class FeatsHandler:
         '''
         # Check if status is of type 'stopped', to decide if 'idle' or 'stopped'
         status = data.data
-        self.status = status
+        if status != 'charging':
+            self.status = status
+        
         if status == 'stopped' and self.idleGoal:
             status = 'idle'
+            self.status = status
             self.idleGoal = False
         
         if status == 'stopped' or status == 'idle':
@@ -195,6 +201,12 @@ class FeatsHandler:
         if data.data != self.lastBattery:
             self.batteryPub.publish(data.data)
             self.lastBattery = data.data
+
+    def charging_cb(self, data):
+        if data.data:
+            self.selfStatusPub.publish('charging')
+        else:
+            self.selfStatusPub.publish(self.status)
 
     def location_cb(self, data):
         '''
