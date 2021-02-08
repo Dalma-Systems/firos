@@ -56,6 +56,9 @@ class FeatsHandler:
         rospy.Subscriber('/feats/status', String, self.status_cb)
         rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.location_cb)
         rospy.Subscriber('/charging/plugged', Bool, self.charging_cb)
+        rospy.Subscriber('/' + C.ROBOT_ID + '/cancel', String, self.cancel_cb)
+        rospy.Subscriber('/' + C.ROBOT_ID + '/resume', String, self.resume_cb)
+        rospy.Subscriber('/' + C.ROBOT_ID + '/ready', String, self.ready_cb)
 
         ## Set Configuration
         data = self.configData['contextbroker']
@@ -92,6 +95,7 @@ class FeatsHandler:
         '''
         while not rospy.is_shutdown():
             rospy.sleep(1)
+        rospy.loginfo("FEATS Handler shutting down...")
         self.heartbeat_timer.cancel()
         return
 
@@ -111,17 +115,6 @@ class FeatsHandler:
         conf_path = current_path + "/../../../config"
         config = json.load(open(conf_path + "/config.json"))
         return config[config['environment']]
-
-    def init_sub(self, topic):
-        ''' This method simply creates the ROS subscriptions
-        to the passed topic. The callback method is dependent
-        on the topic.
-        '''
-        Log("INFO", ('\nSubscribing to ' + topic))
-        topic_type = topic.split('/')[2]
-        if topic_type == 'refDestination':
-            rospy.Subscriber(topic, String, self.ref_destination_cb)
-        return
 
     def ref_destination_cb(self, data):
         '''This method is the callback to the refDestination
@@ -220,6 +213,25 @@ class FeatsHandler:
         '''Retrieves current robot location and publishes to FIROS topic
         '''
         self.locationPub.publish(get_robot_position())
+
+    ############ ROBOT UI ############
+    
+    def cancel_cb(self, data):
+        # send specific context_id (action-robotui)
+        C.CONTEXT_ID = 'action-robotui'
+        self.routePlannerPausePub.publish('')
+
+    def resume_cb(self, data):
+        # send specific context_id (action-robotui)
+        C.CONTEXT_ID = 'action-robotui'
+        self.routePlannerResumePub.publish('')
+
+    def ready_cb(self, data):
+        # send specific context_id (action-robotui)
+        C.CONTEXT_ID = 'action-robotui'
+        self.statusPub.publish('ready')
+
+############ AUXILIARY FUNCTIONS ############
         
 def xytheta_to_pose_stamped(x,y,theta):
     """Turns x,y coordinates to a Pose object"""
