@@ -198,9 +198,23 @@ class FeatsHandler:
     def battery_cb(self, data):
         '''Publishes received battery data to FIROS topic (simple remap)
         '''
-        if data.data != self.lastBattery:
-            self.batteryPub.publish(data.data)
-            self.lastBattery = data.data
+        level = 0.0
+        if data.data >= 250:
+            level = 100.0
+        elif data.data >= 240 and data.data < 250:
+            level = 3.5 * data.data - 775
+        elif data.data >= 230 and data.data < 240:
+            level = 3.5 * data.data - 775
+        elif data.data >= 220 and data.data < 230:
+            level = 2.0 * data.data - 430
+        elif data.data >= 210 and data.data < 220:
+            level = 1.0 * data.data - 200
+        elif data.data < 210:
+            level = 0.0
+        
+        if level != self.lastBattery:
+            self.batteryPub.publish(level)
+            self.lastBattery = level
 
     def charging_cb(self, data):
         if data.data:

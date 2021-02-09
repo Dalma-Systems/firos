@@ -117,8 +117,12 @@ class CbPublisher(Publisher):
         self.posted_history[topic] = rawMsg
 
         # Update attribute on ContextBroker
-        response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
-        self._responseCheck(response, attrAction=1, topEnt=topic)
+        try:
+            response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
+            self._responseCheck(response, attrAction=1, topEnt=topic)
+        except:
+            print("Connection issue")
+            return
 
 
     def unpublish(self):
