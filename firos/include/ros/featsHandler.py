@@ -47,8 +47,9 @@ class FeatsHandler:
         self.routePlannerResumePub = rospy.Publisher('/route_planner/resume', String, queue_size=3)
         self.locationPub = rospy.Publisher('/' + C.ROBOT_ID + '/location', Pose, queue_size=3)
         self.statusPub = rospy.Publisher('/' + C.ROBOT_ID + '/status', String, queue_size=3)
-        self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Float32, queue_size=3)
+        self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Float32, queue_size=3, latch=True)
         self.heartbeatPub = rospy.Publisher('/' + C.ROBOT_ID + '/heartbeat', String, queue_size=3)
+        self.connectionPub = rospy.Publisher('/' + C.ROBOT_ID + '/connection', Bool, queue_size=3)
         self.selfStatusPub = rospy.Publisher('/feats/status', String, queue_size=3)
 
         # Init ROS subscribers
@@ -56,9 +57,9 @@ class FeatsHandler:
         rospy.Subscriber('/feats/status', String, self.status_cb)
         rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.location_cb)
         rospy.Subscriber('/charging/plugged', Bool, self.charging_cb)
-        rospy.Subscriber('/' + C.ROBOT_ID + '/cancel', String, self.cancel_cb)
-        rospy.Subscriber('/' + C.ROBOT_ID + '/resume', String, self.resume_cb)
-        rospy.Subscriber('/' + C.ROBOT_ID + '/ready', String, self.ready_cb)
+        rospy.Subscriber('/ui/goal/cancel', String, self.cancel_cb)
+        rospy.Subscriber('/ui/goal/resume', String, self.resume_cb)
+        rospy.Subscriber('/ui/ready', String, self.ready_cb)
 
         ## Set Configuration
         data = self.configData['contextbroker']
@@ -103,9 +104,17 @@ class FeatsHandler:
         '''Sends a heartbeat to ORION, i.e., an update
         of the "heartbeat" attribute
         '''
+        self.checkConnectivity()
         self.heartbeatPub.publish('')
         self.heartbeat_timer = Timer(C.HEARTBEAT, self.send_heartbeat)
         self.heartbeat_timer.start()
+
+    def checkConnectivity(self):
+        try:
+            requests.get("https://8.8.8.8", timeout=3)
+            self.connectionPub.publish(True)
+        except:
+            self.connectionPub.publish(False)
 
     def get_cb_config(self):
         '''Reads configuration from config.json file
