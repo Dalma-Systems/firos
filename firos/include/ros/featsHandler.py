@@ -15,7 +15,7 @@ from include.constants import Constants as C
 #from include.libLoader import LibLoader
 from include.ros.rosConfigurator import RosConfigurator
 from include import confManager
-from std_msgs.msg import String, Float32, Bool
+from std_msgs.msg import String, Float32, Bool, Int32
 from geometry_msgs.msg import Vector3, Pose, Point, Quaternion, PoseWithCovarianceStamped
 from threading import Timer
 #from include.ros.topicHandler import loadMsgHandlers
@@ -47,7 +47,7 @@ class FeatsHandler:
         self.routePlannerResumePub = rospy.Publisher('/route_planner/resume', String, queue_size=3)
         self.locationPub = rospy.Publisher('/' + C.ROBOT_ID + '/location', Pose, queue_size=3)
         self.statusPub = rospy.Publisher('/' + C.ROBOT_ID + '/status', String, queue_size=3)
-        self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Float32, queue_size=3, latch=True)
+        self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Int32, queue_size=3, latch=True)
         self.heartbeatPub = rospy.Publisher('/' + C.ROBOT_ID + '/heartbeat', String, queue_size=3)
         self.connectionPub = rospy.Publisher('/' + C.ROBOT_ID + '/connection', Bool, queue_size=3)
         self.selfStatusPub = rospy.Publisher('/feats/status', String, queue_size=3)
@@ -111,7 +111,7 @@ class FeatsHandler:
 
     def checkConnectivity(self):
         try:
-            requests.get("https://8.8.8.8", timeout=3)
+            requests.get("https://www.google.com/", timeout=2)
             self.connectionPub.publish(True)
         except:
             self.connectionPub.publish(False)
@@ -215,8 +215,8 @@ class FeatsHandler:
             level = 0.0
         
         if level != self.lastBattery:
-            self.batteryPub.publish(level)
-            self.lastBattery = level
+            self.batteryPub.publish(int(round(level)))
+            self.lastBattery = int(round(level))
 
     def charging_cb(self, data):
         if data.data:
