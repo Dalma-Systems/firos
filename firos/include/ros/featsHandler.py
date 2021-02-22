@@ -214,7 +214,7 @@ class FeatsHandler:
         elif data.data < 210:
             level = 0.0
         
-        if level != self.lastBattery:
+        if int(round(level)) != self.lastBattery:
             self.batteryPub.publish(int(round(level)))
             self.lastBattery = int(round(level))
 
@@ -243,6 +243,7 @@ class FeatsHandler:
         # send specific context_id (action-robotui)
         C.CONTEXT_ID = 'action-robotui'
         self.routePlannerPausePub.publish('')
+        self.statusPub.publish('paused')
 
     def resume_cb(self, data):
         # send specific context_id (action-robotui)
