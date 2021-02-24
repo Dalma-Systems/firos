@@ -121,6 +121,7 @@ if __name__ == '__main__':
             server.close()
             Log("INFO", ('\nExit'))
             rospy.signal_shutdown('Quitting...')
+            print("Quit ROS")
             sys.exit(0)
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)

@@ -18,6 +18,7 @@ from include import confManager
 from std_msgs.msg import String, Float32, Bool, Int32
 from geometry_msgs.msg import Vector3, Pose, Point, Quaternion, PoseWithCovarianceStamped
 from threading import Timer
+from include.ros.topicHandler import SHUTDOWN_SIGNAL
 #from include.ros.topicHandler import loadMsgHandlers
 
 class FeatsHandler:
@@ -94,7 +95,7 @@ class FeatsHandler:
         '''The main loop publishes the robot location
         periodically to the FIROS topic
         '''
-        while not rospy.is_shutdown():
+        while not SHUTDOWN_SIGNAL:
             rospy.sleep(1)
         rospy.loginfo("FEATS Handler shutting down...")
         self.heartbeat_timer.cancel()
@@ -107,6 +108,7 @@ class FeatsHandler:
         self.checkConnectivity()
         self.heartbeatPub.publish('')
         self.heartbeat_timer = Timer(C.HEARTBEAT, self.send_heartbeat)
+        self.heartbeat_timer.daemon = True
         self.heartbeat_timer.start()
 
     def checkConnectivity(self):

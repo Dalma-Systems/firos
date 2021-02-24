@@ -24,6 +24,7 @@ import time
 import requests
 import json
 import threading
+from threading import Thread
 try:
     # Python 3
     import _thread as thread
@@ -140,7 +141,9 @@ class CbSubscriber(Subscriber):
         if not self.serverIsRunning:
             server_ready = threading.Event()
             self.server = CBServer(server_ready)
-            thread.start_new_thread(self.server.start, ())
+            t = Thread(target=self.server.start, args=())
+            t.daemon = True
+            t.start()
             self.serverIsRunning = True
             server_ready.wait()
 
@@ -149,7 +152,9 @@ class CbSubscriber(Subscriber):
         for topic in topicList:
             if topic not in self.subscriptionIds:
                 Log("INFO", "Subscribing on Context-Broker to topics: " + str(list(topicList)))
-                thread.start_new_thread(self.subscribeThread, (topic, topicTypes, msgDefintions)) #Start Thread via subscription         
+                t = Thread(target=self.subscribeThread, args=(topic, topicTypes, msgDefintions))
+                t.daemon = True
+                t.start()
 
 
     def unsubscribe(self):
