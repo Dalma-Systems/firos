@@ -106,8 +106,8 @@ class FeatsHandler:
         '''Sends a heartbeat to ORION, i.e., an update
         of the "heartbeat" attribute
         '''
-        self.checkConnectivity()
-        self.heartbeatPub.publish('')
+        if self.checkConnectivity():
+            self.heartbeatPub.publish('')
         self.heartbeat_timer = Timer(C.HEARTBEAT, self.send_heartbeat)
         self.heartbeat_timer.daemon = True
         self.heartbeat_timer.start()
@@ -116,8 +116,10 @@ class FeatsHandler:
         try:
             requests.get("https://www.google.com/", timeout=2)
             self.connectionPub.publish(True)
+            return True
         except:
             self.connectionPub.publish(False)
+            return False
 
     def get_cb_config(self):
         '''Reads configuration from config.json file

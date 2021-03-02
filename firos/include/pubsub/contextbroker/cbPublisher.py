@@ -31,6 +31,7 @@ from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConv
 from include.pubsub.genericPubSub import Publisher
 from geometry_msgs.msg import Quaternion
 import datetime
+from queue import Queue
 #from include.pubsub.contextbroker.cbSubscriber import context_id as CONTEXT_ID
 
 class CbPublisher(Publisher):
@@ -50,6 +51,7 @@ class CbPublisher(Publisher):
     posted_history = {}
     CB_HEADER = {'Content-Type': 'application/json'}
     CB_BASE_URL = None
+    q = Queue()
 
     def __init__(self):
         ''' Lazy Initialization of CB_BASE_URL
@@ -120,8 +122,16 @@ class CbPublisher(Publisher):
         try:
             response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
             self._responseCheck(response, attrAction=1, topEnt=topic)
+            # send requests which are enqueued
+            while not self.q.empty():
+                response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=self.q.get(), headers=self.CB_HEADER)
+                self._responseCheck(response, attrAction=1, topEnt=topic)
+                time.sleep(1)
         except:
             print("Connection issue")
+            # if the PATCH fails, save to queue and re-send when connection returns
+            if not self.q.full():
+                self.q.put(jsonStr)
             return
 
 
