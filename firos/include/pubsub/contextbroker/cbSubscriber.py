@@ -237,7 +237,7 @@ class CbSubscriber(Subscriber):
             },
             "notification": {
             "http": {
-                "url": "https://{}".format(C.EP_SERVER_ADRESS)
+                "url": C.EP_SERVER_ADRESS
             },
             "attrs": [str(topic.split("/")[2])]
             },

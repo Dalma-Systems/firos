@@ -34,6 +34,7 @@ class FeatsHandler:
 
         self.firstRun = True
         self.status = 'idle'
+        self.paused = False # stores whether the robot is in a paused state or not
         # Get Orion configuration
         self.configData = self.get_cb_config()
         self.lastBattery = 0.0
@@ -167,10 +168,12 @@ class FeatsHandler:
         action = data.data
         if action == 'pause':
             # robot stops current goal and replies "paused" + context_id
+            self.paused = True
             self.routePlannerPausePub.publish('')
             self.statusPub.publish('paused')
         elif action == 'resume':
             # robot resumes goal and replies <last state> + context_id
+            self.paused = False
             self.routePlannerResumePub.publish('')
             if self.status != 'moving':
                 self.statusPub.publish(self.status)
@@ -224,7 +227,10 @@ class FeatsHandler:
         if data.data:
             self.selfStatusPub.publish('charging')
         else:
-            self.selfStatusPub.publish(self.status)
+            if self.paused:
+                self.statusPub.publish('paused')
+            else:
+                self.selfStatusPub.publish(self.status)
 
     def location_cb(self, data):
         '''
