@@ -111,7 +111,7 @@ class CbPublisher(Publisher):
         # if struct not initilized, intitilize it even on ContextBroker!
         if topic not in self.posted_history:
             self.posted_history[topic] = rawMsg
-            response = requests.post(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
+            response = requests.post(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER, timeout=5)
             self._responseCheck(response, attrAction=0, topEnt=topic)
             return
 
@@ -120,15 +120,15 @@ class CbPublisher(Publisher):
 
         # Update attribute on ContextBroker
         try:
-            response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER)
+            response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=jsonStr, headers=self.CB_HEADER, timeout=5)
             self._responseCheck(response, attrAction=1, topEnt=topic)
             # send requests which are enqueued
             while not self.q.empty():
-                response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=self.q.get(), headers=self.CB_HEADER)
+                response = requests.patch(self.CB_BASE_URL + C.ID_PREFIX + obj["id"] + "/attrs", data=self.q.get(), headers=self.CB_HEADER, timeout=5)
                 self._responseCheck(response, attrAction=1, topEnt=topic)
                 time.sleep(1)
         except:
-            print("Connection issue")
+            print("Connection issue, saving request to queue")
             # if the PATCH fails, save to queue and re-send when connection returns
             if not self.q.full():
                 self.q.put(jsonStr)

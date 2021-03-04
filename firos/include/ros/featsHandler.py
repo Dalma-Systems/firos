@@ -9,6 +9,7 @@ import requests
 import tf
 import tf2_ros
 import time
+import threading
 
 from include.logger import Log
 from include.constants import Constants as C 
@@ -20,6 +21,8 @@ from geometry_msgs.msg import Vector3, Pose, Point, Quaternion, PoseWithCovarian
 from threading import Timer
 from include.ros.topicHandler import SHUTDOWN_SIGNAL
 #from include.ros.topicHandler import loadMsgHandlers
+
+lock_refDestination = threading.Lock()
 
 class FeatsHandler:
     ''' The class FeatsHandler is used to handle all the events
@@ -51,7 +54,7 @@ class FeatsHandler:
         self.statusPub = rospy.Publisher('/' + C.ROBOT_ID + '/status', String, queue_size=3)
         self.batteryPub = rospy.Publisher('/' + C.ROBOT_ID + '/battery', Int32, queue_size=3, latch=True)
         self.heartbeatPub = rospy.Publisher('/' + C.ROBOT_ID + '/heartbeat', String, queue_size=3)
-        self.connectionPub = rospy.Publisher('/' + C.ROBOT_ID + '/connection', Bool, queue_size=3)
+        self.connectionPub = rospy.Publisher('/' + C.ROBOT_ID + '/connection', Bool, queue_size=3, latch=True)
         self.selfStatusPub = rospy.Publisher('/feats/status', String, queue_size=3)
 
         # Init ROS subscribers
@@ -88,6 +91,8 @@ class FeatsHandler:
 
         # Send first heartbeat
         self.send_heartbeat()
+
+        self.statusPub.publish(self.status)
         
         # Main loop
         self.loop()
@@ -141,10 +146,16 @@ class FeatsHandler:
             #return # uncomment if skipInitialNotification is not set in the subscription
         
         # GET request to obtain received entity location
-        response = requests.get(self.CB_BASE_URL + data.data + "/attrs/location")
-        if response.status_code != 200:
+        print("Getting refDestination coordinates...")
+        lock_refDestination.acquire()
+        try:
+            response = requests.get(self.CB_BASE_URL + data.data + "/attrs/location", timeout=5)
+        except:
+            print("Failed request!")
             Log("INFO", ("Request failed: received status code " + str(response.status_code)))
+            lock_refDestination.release()
             return
+        print(response.content)
         recv = json.loads(response.content)
 
         # Check if goal is an idle station
@@ -161,13 +172,18 @@ class FeatsHandler:
         pose.x = recv['value']['coordinates'][0]
         pose.y = recv['value']['coordinates'][1]
         pose.z = recv['metadata']['angle']['value']
+        print("Sending pose:")
+        print(pose)
+        self.paused = False
         self.routePlannerXYTPub.publish(pose)
+        lock_refDestination.release()
         return
     
     def action_cb(self, data):
         '''Handles actions by passing the info to route_planner
         '''
         action = data.data
+        print("Received action " + str(action))
         if action == 'pause':
             # robot stops current goal and replies "paused" + context_id
             self.paused = True
@@ -251,9 +267,11 @@ class FeatsHandler:
     
     def cancel_cb(self, data):
         # send specific context_id (action-robotui)
+        print('Received pause...')
         C.CONTEXT_ID = 'action-robotui'
         self.routePlannerPausePub.publish('')
         self.statusPub.publish('paused')
+        print("Pause has been processed.")
 
     def resume_cb(self, data):
         # send specific context_id (action-robotui)

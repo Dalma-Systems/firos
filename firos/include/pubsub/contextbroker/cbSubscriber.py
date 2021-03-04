@@ -344,8 +344,10 @@ class CBServer:
                 we invoke """RosTopicHandler.publish""" here!
             '''
             # retreive Data and get the updated information
+            #print(str(self.headers))
             recData = self.rfile.read(int(self.headers['Content-Length']))
             receivedData = json.loads(recData)
+            #print(receivedData)
             #global context_id
             #context_id = receivedData['data'][0]['refDestination']['metadata']['context']['value']
             #print(receivedData)

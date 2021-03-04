@@ -118,7 +118,7 @@ if __name__ == '__main__':
         def signal_handler(signal, frame):
             Log("INFO", ('\nExiting from the application'))
             RosTopicHandler.unregisterAll()
-            server.close()
+            #server.close()
             Log("INFO", ('\nExit'))
             rospy.signal_shutdown('Quitting...')
             print("Quit ROS")
@@ -135,6 +135,6 @@ if __name__ == '__main__':
         createConnectionListeners()
         handler = FeatsHandler()
 
-        Log("INFO", "\nPress Ctrl+C to Exit\n")
-        server.start()
+        #Log("INFO", "\nPress Ctrl+C to Exit\n")
+        #server.start()
 
