@@ -146,7 +146,6 @@ class FeatsHandler:
             #return # uncomment if skipInitialNotification is not set in the subscription
         
         # GET request to obtain received entity location
-        print("Getting refDestination coordinates...")
         lock_refDestination.acquire()
         try:
             response = requests.get(self.CB_BASE_URL + data.data + "/attrs/location", timeout=5)
@@ -155,7 +154,6 @@ class FeatsHandler:
             Log("INFO", ("Request failed: received status code " + str(response.status_code)))
             lock_refDestination.release()
             return
-        print(response.content)
         recv = json.loads(response.content)
 
         # Check if goal is an idle station
@@ -172,8 +170,6 @@ class FeatsHandler:
         pose.x = recv['value']['coordinates'][0]
         pose.y = recv['value']['coordinates'][1]
         pose.z = recv['metadata']['angle']['value']
-        print("Sending pose:")
-        print(pose)
         self.paused = False
         self.routePlannerXYTPub.publish(pose)
         lock_refDestination.release()
@@ -183,7 +179,6 @@ class FeatsHandler:
         '''Handles actions by passing the info to route_planner
         '''
         action = data.data
-        print("Received action " + str(action))
         if action == 'pause':
             # robot stops current goal and replies "paused" + context_id
             self.paused = True
@@ -267,11 +262,9 @@ class FeatsHandler:
     
     def cancel_cb(self, data):
         # send specific context_id (action-robotui)
-        print('Received pause...')
         C.CONTEXT_ID = 'action-robotui'
         self.routePlannerPausePub.publish('')
         self.statusPub.publish('paused')
-        print("Pause has been processed.")
 
     def resume_cb(self, data):
         # send specific context_id (action-robotui)
