@@ -237,7 +237,8 @@ class CbSubscriber(Subscriber):
             },
             "notification": {
             "http": {
-                "url": C.EP_SERVER_ADRESS
+                #"url": C.EP_SERVER_ADRESS
+                "url": "http://{}:{}".format(C.EP_SERVER_ADRESS, self.server.port)
             },
             "attrs": [str(topic.split("/")[2])]
             },
