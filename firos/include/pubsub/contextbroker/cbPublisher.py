@@ -31,7 +31,12 @@ from include.FiwareObjectConverter.objectFiwareConverter import ObjectFiwareConv
 from include.pubsub.genericPubSub import Publisher
 from geometry_msgs.msg import Quaternion
 import datetime
-from queue import Queue
+try:
+    # Python 3
+    from queue import Queue
+except ImportError:
+    # Python 2
+    from Queue import Queue
 #from include.pubsub.contextbroker.cbSubscriber import context_id as CONTEXT_ID
 
 class CbPublisher(Publisher):

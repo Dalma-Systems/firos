@@ -2,13 +2,13 @@
   "environment": "demo",
 
   "demo": {
-    "robotID": "8ae0de7a22f54db8bef7df1268201d41",
+    "robotID": "testbot1",
     "id_prefix": "urn:ngsi-ld:AMR:",
     "server": {
         "port"      : 10100
     },
     "contextbroker": {
-      "address"   : "",
+      "address"   : "orion",
         "port"      : 1026,
         "subscription": {
           "throttling": 0,
@@ -17,7 +17,7 @@
         }
     },
     "endpoint": {
-      "address": "",
+      "address": "firos",
       "port": 4321
     },
     "log_level": "INFO"

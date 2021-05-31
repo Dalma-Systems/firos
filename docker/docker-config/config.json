@@ -1,18 +1,26 @@
 {
-    "environment": "local",
-    "local": {
-      "server": {
-          "port": 10100
-      },
-      "contextbroker": {
-          "address"   : "orion",
-          "port"      : 1026
-      },
-      "log_level": "INFO",
-      "endpoint":
-      {
-        "address": "firos",
-        "port": 1234
-      }
-    }
+  "environment": "demo",
+
+  "demo": {
+    "robotID": "testbot1",
+    "id_prefix": "urn:ngsi-ld:AMR:",
+    "heartbeat": 30.0,
+    "server": {
+        "port"      : 10100
+    },
+    "contextbroker": {
+      "address"   : "orion",
+        "port"      : 1026,
+        "subscription": {
+          "throttling": 0,
+          "subscription_length": 300,
+          "subscription_refresh_delay": 0.5
+        }
+    },
+    "endpoint": {
+      "address": "firos",
+      "port": 4321
+    },
+    "log_level": "INFO"
   }
+}

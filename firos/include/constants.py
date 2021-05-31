@@ -57,6 +57,12 @@ class Constants:
 
             configData = cls.setConfiguration(path)
             cls.DATA = configData
+
+            if os.getenv('CONTEXT_BROKER_ADDRESS'):
+                configData['address'] = os.getenv('CONTEXT_BROKER_ADDRESS')
+            
+            if os.getenv('CONTEXT_BROKER_PORT'):
+                configData['port'] = os.getenv('CONTEXT_BROKER_PORT')
             
             if "log_level" in configData:
                 cls.LOGLEVEL = configData["log_level"]
@@ -70,16 +76,20 @@ class Constants:
             if "ros_subscriber_queue" in configData:
                 cls.ROS_SUB_QUEUE_SIZE = int(configData["ros_subscriber_queue"])
 
-            if "endpoint" in configData and "address" in configData["endpoint"]:
-                    cls.EP_SERVER_ADRESS = configData["endpoint"]["address"]
+            if os.getenv('ENDPOINT_ADDRESS'):
+                cls.EP_SERVER_ADRESS = os.getenv('ENDPOINT_ADDRESS')
+            elif "endpoint" in configData and "address" in configData["endpoint"]:
+                cls.EP_SERVER_ADRESS = configData["endpoint"]["address"]
             else:
                 # If not set, we get ourselves the ip-address
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 s.connect(("8.8.8.8", 80))
                 cls.EP_SERVER_ADRESS = s.getsockname()[0]
 
-            if "endpoint" in configData and "port" in configData["endpoint"]:
-                    cls.EP_SERVER_PORT = int(configData["endpoint"]["port"])
+            if os.getenv('ENDPOINT_ADDRESS') and os.getenv('ENDPOINT_PORT'):
+                cls.EP_SERVER_PORT = os.getenv('ENDPOINT_PORT')
+            elif "endpoint" in configData and "port" in configData["endpoint"]:
+                cls.EP_SERVER_PORT = int(configData["endpoint"]["port"])
 
             if "rosbridge_port" in configData:
                 cls.ROSBRIDGE_PORT = int(configData["rosbridge_port"])
@@ -87,7 +97,9 @@ class Constants:
             if "pub_frequency" in configData:
                 cls.PUB_FREQUENCY = int(configData["pub_frequency"])
             
-            if "robotID" in configData:
+            if os.getenv('ROBOT_ID'):
+                cls.ROBOT_ID = os.getenv('ROBOT_ID')
+            elif "robotID" in configData:
                 cls.ROBOT_ID = configData["robotID"]
             
             if "id_prefix" in configData:
@@ -97,3 +109,5 @@ class Constants:
                 cls.HEARTBEAT = configData["heartbeat"]
             
             cls.CONTEXT_ID = ""
+
+            print(cls)
