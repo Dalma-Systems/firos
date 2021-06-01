@@ -3,7 +3,7 @@ services:
     # build: 
     #   context: ".."
     #   dockerfile: docker/Dockerfile
-    image: dalma-systems/firos
+    image: dalmasystems/firos
     container_name: firos
     depends_on: 
       - orion

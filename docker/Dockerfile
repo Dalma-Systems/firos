@@ -1,4 +1,4 @@
-FROM ros:melodic-ros-core-bionic
+FROM ros:melodic-ros-base
 
 RUN mkdir catkin_ws \
     && mkdir catkin_ws/src \
@@ -8,26 +8,6 @@ RUN mkdir catkin_ws \
 
 COPY . /catkin_ws/src/firos
 WORKDIR /catkin_ws
-
-# Standard 'config.json'-Configuration for Docker 
-# RUN echo '{\n\
-#    "environment":"docker",\n\
-#    "docker":{\n\
-#       "server":{\n\
-#          "port":10100\n\
-#       },\n\
-#       "contextbroker":{\n\
-#          "address":"orion",\n\
-#          "port":1026,\n\
-#          "subscription":{\n\
-#             "throttling":0,\n\
-#             "subscription_length":300,\n\
-#             "subscription_refresh_delay":0.5\n\
-#          }\n\
-#       },\n\
-#       "log_level":"INFO",\n\
-#    }\n\
-# }\n' > /catkin_ws/src/firos/config/config.json
 
 # remove descriptions/whitelist and robots configuration, since those need to be added by the user
 RUN rm -f /catkin_ws/src/firos/config/robots.json && \

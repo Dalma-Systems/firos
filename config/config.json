@@ -7,6 +7,7 @@
     "server": {
         "port"      : 10100
     },
+    "heartbeat": 30.0,
     "contextbroker": {
       "address"   : "orion",
         "port"      : 1026,
